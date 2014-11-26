@@ -1,0 +1,28 @@
+{
+	"name": "mario-deluna/sourcequery",
+	"type": "library",
+	"description": "A simple PHP class to query a Source engine server",
+	"version": "1.0.0",
+	"keywords": [ "source", "game", "server" ],
+	"homepage": "https://github.com/mario-deluna/SourceQuery",
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "Yannick Croissant",
+			"homepage": "https://yannick.cr/",
+			"role": "Developer"
+		},
+		{
+			"name": "Mario Döring",
+			"homepage": "https://clancats.ch",
+			"role": "Developer"
+		}
+	],
+	"autoload": {
+		"psr-4": {
+			"SourceQuery\\": "src"
+		}
+	},
+	"require": {
+	}
+}

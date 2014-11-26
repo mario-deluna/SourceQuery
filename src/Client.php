@@ -1,9 +1,94 @@
 <?php
-class SourceQuery {
 
-	public function __construct($ip, $port=27015) {
-		$this->ip = $ip;
-		$this->port = $port;
+namespace SourceQuery;
+
+class Client 
+{	
+	/**
+	 * The connection to the server
+	 *
+	 * @var SourceQuery\Connection
+	 */
+	protected $connection = null;
+	
+	/**
+	 * The client configuration
+	 *
+	 * @var SourceQuery\Configuration
+	 */
+	public $config = null;
+	
+	/**
+	 * Create new client object
+	 *
+	 * @param string 			$ip
+	 * @param int				$port
+	 * @return void
+	 */
+	public function __construct( $ip, $port = null ) 
+	{
+		// assign the configuration
+		$this->config = new Configuration;
+		
+		$this->setIp( $ip );
+		$this->setPort( $port );
+
+		// directly try to connect
+		$this->connect();
+	}
+	
+	/**
+	 * Set the clients ip 
+	 *
+	 * @param string		$ip
+	 * @return self
+	 */
+	public function setIp( $ip )
+	{
+		if ( is_null( $ip ) )
+		{
+			throw new Exception( "setIp() - first argument cannot be null." );
+		}
+		
+		$this->config->ip = $ip; return $this;
+	}
+	
+	/**
+	 * Set the port for the connection. If null is given default port 27015 is used.
+	 *
+	 * @param int		$port
+	 * @return self
+	 */
+	public function setPort( $port = null )
+	{
+		if ( is_null( $port ) )
+		{
+			$port = 27015;
+		}
+		
+		$this->config->port = $port; return $this;
+	}
+	
+	/**
+	 * Create a connection to the source server and close the old connection
+	 *
+	 * @return self
+	 */
+	public function connect()
+	{
+		if ( !is_null( $this->connection ) && $this->connection instanceof Connection )
+		{
+			$this->connection->disconnect();
+		}
+		
+		$this->connection = new Connection( $this );
+		
+		return $this;
+	}
+	
+	public function server()
+	{
+		
 	}
 
 	protected function query($query) {

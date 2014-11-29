@@ -19,6 +19,20 @@ class Client
 	public $config = null;
 	
 	/**
+	 * The server object
+	 *
+	 * @var SourceQuery\Server
+	 */
+	protected $server = null;
+	
+	/**
+	 * The available server protocols
+	 *
+	 * @var array[int]
+	 */
+	private $availableProtocols = [ 109, 73 ];
+	
+	/**
 	 * Create new client object
 	 *
 	 * @param string 			$ip
@@ -70,6 +84,36 @@ class Client
 	}
 	
 	/**
+	 * Get the server object or create it
+	 *
+	 * @return SourceServer
+	 */
+	public function server()
+	{
+		if ( !is_null( $this->server ) )
+		{
+			return $this->server;
+		}
+		
+		if ( !$this->connection->connected() )
+		{
+			throw new Exception( 'Cannot create server without a connection established.' );
+		}
+		
+		return $this->server = $this->fetchServerObject();
+	}
+	
+	/**
+	 * Get the current connection
+	 *
+	 * @return SoruceQuery\Connection
+	 */
+	public function connection()
+	{
+		return $this->connection;
+	}
+	
+	/**
 	 * Create a connection to the source server and close the old connection
 	 *
 	 * @return self
@@ -86,28 +130,100 @@ class Client
 		return $this;
 	}
 	
-	public function server()
+	/**
+	 * Get the basic server infos and return them as array
+	 *
+	 * @return array
+	 */
+	protected function fetchServerObject()
 	{
+		$infos = $this->connection()->query( "\xFF\xFF\xFF\xFFTSource Engine Query\x00" );
 		
+		// Determine the server protocol
+		$protocol = hexdec( substr( bin2hex( $infos ), 8, 2 ) );
+		
+		if ( !in_array( $protocol, $this->availableProtocols ) )
+		{
+			throw new Exception( 'Unknown server protocol.' );
+		}
+		
+		$infos = call_user_func( array( $this, 'fetchServerInfosWithProtocol'.$protocol ), $infos );
+	}
+	
+	private function fetchServerInfosWithProtocol109( $infos )
+	{var_dump( $infos ); die;
+		// Split informations
+		$infos = chunk_split(substr(bin2hex($infos), 10), 2, '\\');
+		
+		
+		
+		list($serveur['ip'], $serveur['name'], $serveur['map'], $serveur['mod'], $serveur['modname'], $serveur['params']) = explode('\\00', $infos);
+		
+		// Split parameters
+		$serveur['params'] = substr($serveur['params'],0,18);
+		
+		$serveur['params'] = chunk_split(str_replace('\\', '', $serveur['params']), 2, ' ');
+		list($params['players'], $params['places'], $params['protocol'], $params['dedie'], $params['os'], $params['pass']) = explode(' ', $serveur['params']);
+		$params = array(
+			'id'		=>	0, // Unsupported
+			'bots'		=>	0, // Unsupported
+			'ip'		=>	$this->ip,
+			'port'		=>	$this->port,
+			'players'	=>	hexdec($params['players']),
+			'places'	=>	hexdec($params['places']),
+			'protocol'	=>	hexdec($params['protocol']),
+			'dedie'		=>	chr(hexdec($params['dedie'])),
+			'os'		=>	chr(hexdec($params['os'])),
+			'pass'		=>	hexdec($params['pass'])
+		);
+		unset($serveur['ip']);
+		unset($serveur['params']);
+		
+		$serveur = array_map(function($item){
+			return pack("H*", str_replace('\\', '', $item));
+		}, $serveur);
+		
+		$infos = ($params + $serveur);
+	
+		var_dump($infos); die;
+	}
+	
+	private function fetchServerInfosWithProtocol73( $infos )
+	{
+		$server = new Server();
+		
+		$infos = chunk_split(substr(bin2hex($infos), 12), 2, '\\');
+		
+		list( $server->name, $server->map, $server->folder, $server->game, $serveur['params']) = explode('\\00', $infos, 5);
+		
+		// Split parameters
+		$serveur['params'] = substr($serveur['params'], 0);
+		
+		$serveur['params'] = chunk_split(str_replace('\\', '', $serveur['params']), 2, ' ');
+		list($params['id1'], $params['id2'], $params['players'], $params['places'], $params['bots'], $params['dedie'], $params['os'], $params['pass']) = explode(' ', $serveur['params']);
+		$params=array(
+			'id'		=>  hexdec($params['id2'] . $params['id1']),
+			'ip'		=>	$this->ip,
+			'port'		=>	$this->port,
+			'players'	=>	hexdec($params['players']),
+			'places'	=>	hexdec($params['places']),
+			'bots'		=>	hexdec($params['bots']),
+			'protocol'	=>	73,
+			'dedie'		=>	chr(hexdec($params['dedie'])),
+			'os'		=>	chr(hexdec($params['os'])),
+			'pass'		=>	hexdec($params['pass'])
+		);
+		unset($serveur['params']);
+		
+		$serveur = array_map(function($item){
+			return pack("H*", str_replace('\\', '', $item));
+		}, $serveur);
+		
+		$infos = ($serveur + $params);
+		
+		var_dump($infos); die;
 	}
 
-	protected function query($query) {
-		$fp = fsockopen('udp://' . $this->ip, $this->port, $errno, $errstr, 2);
-		if (!$fp) {
-			trigger_error('The server does not respond', E_USER_NOTICE);
-			return false;
-		} else {
-			fwrite($fp, $query);
-			stream_set_timeout($fp, 2);
-			$result = '';
-			do {
-				$result .= fread ($fp, 1);
-				$fpstatus = socket_get_status($fp);
-			} while ($fpstatus['unread_bytes']);
-			fclose($fp);
-			return $result;
-		}
-	}
 
 	protected function getChallenge() {
 		$challenge = $this->query("\xFF\xFF\xFF\xFFU\xFF\xFF\xFF\xFF");

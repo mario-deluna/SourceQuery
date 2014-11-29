@@ -23,6 +23,16 @@ class Connection
 	}
 	
 	/**
+	 * Is the connection established
+	 *
+	 * @return bool
+	 */
+	public function connected()
+	{
+		return !is_null( $this->connection );
+	}
+	
+	/**
 	 * Start a new socket connection
 	 *
 	 * @param Client 			$client
@@ -55,5 +65,26 @@ class Connection
 		{
 			fclose( $this->connection ); $this->connection = null;
 		}
+	}
+	
+	/**
+	 * Query the soruce server
+	 *
+	 * @param string			$query
+	 */
+	public function query( $query )
+	{
+		$result = '';
+		
+		fwrite( $this->connection, $query );
+			
+		do 
+		{
+			$result .= fread( $this->connection, 1 );
+			$fpstatus = socket_get_status( $this->connection );
+		} 
+		while( $fpstatus['unread_bytes'] );
+		
+		return $result;
 	}
 }

@@ -1,6 +1,6 @@
 <?php 
 
-namespace SourceQuery\Test;
+namespace SourceQuery\Tests;
 
 use SourceQuery\Configuration;
 

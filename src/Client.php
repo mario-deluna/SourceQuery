@@ -39,7 +39,7 @@ class Client
 	 * @param int				$port
 	 * @return void
 	 */
-	public function __construct( $ip, $port = null ) 
+	public function __construct( $ip, $port = null, $connect = true ) 
 	{
 		// assign the configuration
 		$this->config = new Configuration;
@@ -147,81 +147,111 @@ class Client
 			throw new Exception( 'Unknown server protocol.' );
 		}
 		
-		$infos = call_user_func( array( $this, 'fetchServerInfosWithProtocol'.$protocol ), $infos );
+		// create new server object 
+		$server = new Server;
+		
+		// set the protocol
+		$server->protocol = $protocol;
+		
+		list( $infos, $parameters ) = call_user_func( array( $this, 'fetchServerInfosWithProtocol'.$protocol ), $infos );
+		
+		foreach( $this->formatServerInfos( $infos ) + $this->formatServerParameters( $parameters ) as $key => $value )
+		{
+			$server->__set( $key, $value );
+		}
+		
+		return $server;
 	}
 	
+	/**
+	 * Format the server infos
+	 *
+	 * @param array 			$infos
+	 * @return array
+	 */
+	private function formatServerInfos( $infos )
+	{
+		return array_map( function( $item ) 
+		{
+			return pack( "H*", str_replace( '\\', '', $item ) );
+		}, $infos );
+	}
+	
+	/**
+	 * Format the server paramters
+	 * 
+	 * @param array 			$parameters
+	 * @return array
+	 */
+	private function formatServerParameters( $parameters )
+	{
+		foreach( $parameters as $key => &$value )
+		{
+			$value = hexdec( $value );
+			
+			if ( in_array( $key, [ 'environment', 'serverType' ] ) )
+			{
+				$value = chr( $value );
+			}
+		}
+		
+		return $parameters;
+	}
+	
+	/**
+	 * fetch server infos with protocol 109 ( Goldsource Games )
+	 *
+	 * @param string 			$infos
+	 * @return SourceQuery\Server
+	 */
 	private function fetchServerInfosWithProtocol109( $infos )
-	{var_dump( $infos ); die;
+	{
+		$data = [];
+		$parameters = [];	
+		
 		// Split informations
-		$infos = chunk_split(substr(bin2hex($infos), 10), 2, '\\');
+		$infos = chunk_split( substr( bin2hex( $infos ), 10 ), 2, '\\' );
 		
-		
-		
-		list($serveur['ip'], $serveur['name'], $serveur['map'], $serveur['mod'], $serveur['modname'], $serveur['params']) = explode('\\00', $infos);
+		list( $data['ip'], $data['name'], $data['map'], $data['folder'], $data['game'], $data['parameters'] ) = explode( '\\00', $infos );
 		
 		// Split parameters
-		$serveur['params'] = substr($serveur['params'],0,18);
+		$infos = chunk_split( str_replace('\\', '', substr( $data['parameters'], 0, 18 ) ), 2, ' ' );
 		
-		$serveur['params'] = chunk_split(str_replace('\\', '', $serveur['params']), 2, ' ');
-		list($params['players'], $params['places'], $params['protocol'], $params['dedie'], $params['os'], $params['pass']) = explode(' ', $serveur['params']);
-		$params = array(
-			'id'		=>	0, // Unsupported
-			'bots'		=>	0, // Unsupported
-			'ip'		=>	$this->ip,
-			'port'		=>	$this->port,
-			'players'	=>	hexdec($params['players']),
-			'places'	=>	hexdec($params['places']),
-			'protocol'	=>	hexdec($params['protocol']),
-			'dedie'		=>	chr(hexdec($params['dedie'])),
-			'os'		=>	chr(hexdec($params['os'])),
-			'pass'		=>	hexdec($params['pass'])
-		);
-		unset($serveur['ip']);
-		unset($serveur['params']);
+		list($parameters['playerCount'], $parameters['maxPlayerCount'], $parameters['protocol'], $parameters['serverType'], $parameters['environment'], $parameters['password']) = explode(' ', $infos );
 		
-		$serveur = array_map(function($item){
-			return pack("H*", str_replace('\\', '', $item));
-		}, $serveur);
+		// unset unused parameters
+		unset( $data['ip'], $data['parameters'] );
 		
-		$infos = ($params + $serveur);
-	
-		var_dump($infos); die;
+		return [ $data, $parameters ];
 	}
 	
+	/**
+	 * fetch server infos with protocol 73
+	 *
+	 * @param string 			$infos
+	 * @return SourceQuery\Server
+	 */
 	private function fetchServerInfosWithProtocol73( $infos )
 	{
-		$server = new Server();
+		$data = [];
+		$parameters = [];
 		
 		$infos = chunk_split(substr(bin2hex($infos), 12), 2, '\\');
 		
-		list( $server->name, $server->map, $server->folder, $server->game, $serveur['params']) = explode('\\00', $infos, 5);
+		// get the main data
+		list( $data['name'], $data['map'], $data['folder'], $data['game'], $data['parameters'] ) = explode( '\\00', $infos, 5 );
 		
-		// Split parameters
-		$serveur['params'] = substr($serveur['params'], 0);
+		// get the other parameters
+		$infos = explode( ' ', chunk_split( str_replace('\\', '', $data['parameters'] ), 2, ' ' ) );
 		
-		$serveur['params'] = chunk_split(str_replace('\\', '', $serveur['params']), 2, ' ');
-		list($params['id1'], $params['id2'], $params['players'], $params['places'], $params['bots'], $params['dedie'], $params['os'], $params['pass']) = explode(' ', $serveur['params']);
-		$params=array(
-			'id'		=>  hexdec($params['id2'] . $params['id1']),
-			'ip'		=>	$this->ip,
-			'port'		=>	$this->port,
-			'players'	=>	hexdec($params['players']),
-			'places'	=>	hexdec($params['places']),
-			'bots'		=>	hexdec($params['bots']),
-			'protocol'	=>	73,
-			'dedie'		=>	chr(hexdec($params['dedie'])),
-			'os'		=>	chr(hexdec($params['os'])),
-			'pass'		=>	hexdec($params['pass'])
-		);
-		unset($serveur['params']);
+		list( $parameters['id2'], $parameters['id1'], $parameters['playerCount'], $parameters['maxPlayerCount'], $parameters['botsCount'], $parameters['serverType'], $parameters['environment'], $parameters['password']) = $infos;
 		
-		$serveur = array_map(function($item){
-			return pack("H*", str_replace('\\', '', $item));
-		}, $serveur);
+		$parameters['id'] = $parameters['id1'].$parameters['id2']; 
 		
-		$infos = ($serveur + $params);
+		// unset unused parameters
+		unset( $parameters['id1'], $parameters['id2'], $data['parameters'] );
 		
-		var_dump($infos); die;
+		return [ $data, $parameters ];
 	}
 
 
@@ -236,86 +266,7 @@ class Client
 	    $max = pow(2, 4 * (strlen($hex) + (strlen($hex) % 2)));
 	    $_dec = $max - $dec;
 	    return $dec > $_dec ? -$_dec : $dec;
-	}
-	
-	public function getInfos() {
-		$infos = $this->query("\xFF\xFF\xFF\xFFTSource Engine Query\x00");
-
-		//  Détermine le protocole utilisé
-		$protocol = hexdec(substr(bin2hex($infos), 8, 2));
-			
-		if($protocol == 109) return $this->getInfos1($infos);
-		else if($protocol == 73) return $this->getInfos2($infos);
-		
-		trigger_error('Unknown server type', E_USER_NOTICE);
-		return false;
-	}
-	
-	protected function getInfos1($infos) {
-		// Split informations
-		$infos = chunk_split(substr(bin2hex($infos), 10), 2, '\\');
-		@list($serveur['ip'], $serveur['name'], $serveur['map'], $serveur['mod'], $serveur['modname'], $serveur['params']) = explode('\\00', $infos);
-		
-		// Split parameters
-		$serveur['params'] = substr($serveur['params'],0,18);
-		
-		$serveur['params'] = chunk_split(str_replace('\\', '', $serveur['params']), 2, ' ');
-		list($params['players'], $params['places'], $params['protocol'], $params['dedie'], $params['os'], $params['pass']) = explode(' ', $serveur['params']);
-		$params = array(
-			'id'		=>	0, // Unsupported
-			'bots'		=>	0, // Unsupported
-			'ip'		=>	$this->ip,
-			'port'		=>	$this->port,
-			'players'	=>	hexdec($params['players']),
-			'places'	=>	hexdec($params['places']),
-			'protocol'	=>	hexdec($params['protocol']),
-			'dedie'		=>	chr(hexdec($params['dedie'])),
-			'os'		=>	chr(hexdec($params['os'])),
-			'pass'		=>	hexdec($params['pass'])
-		);
-		unset($serveur['ip']);
-		unset($serveur['params']);
-		
-		$serveur = array_map(function($item){
-			return pack("H*", str_replace('\\', '', $item));
-		}, $serveur);
-		
-		$infos = ($params + $serveur);
-		return $infos;
-	}
-	
-	protected function getInfos2($infos) {
-		// Split informations
-		$infos = chunk_split(substr(bin2hex($infos), 12), 2, '\\');
-		@list($serveur['name'], $serveur['map'], $serveur['mod'], $serveur['modname'], $serveur['params']) = explode('\\00', $infos, 5);
-		
-		// Split parameters
-		$serveur['params'] = substr($serveur['params'], 0);
-		
-		$serveur['params'] = chunk_split(str_replace('\\', '', $serveur['params']), 2, ' ');
-		list($params['id1'], $params['id2'], $params['players'], $params['places'], $params['bots'], $params['dedie'], $params['os'], $params['pass']) = explode(' ', $serveur['params']);
-		$params=array(
-			'id'		=>  hexdec($params['id2'] . $params['id1']),
-			'ip'		=>	$this->ip,
-			'port'		=>	$this->port,
-			'players'	=>	hexdec($params['players']),
-			'places'	=>	hexdec($params['places']),
-			'bots'		=>	hexdec($params['bots']),
-			'protocol'	=>	73,
-			'dedie'		=>	chr(hexdec($params['dedie'])),
-			'os'		=>	chr(hexdec($params['os'])),
-			'pass'		=>	hexdec($params['pass'])
-		);
-		unset($serveur['params']);
-		
-		$serveur = array_map(function($item){
-			return pack("H*", str_replace('\\', '', $item));
-		}, $serveur);
-		
-		$infos = ($serveur + $params);	
-		return $infos;
-	}
-	
+	}	
 	public function getPlayers() {
 		$challenge = $this->getChallenge();
 	

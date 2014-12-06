@@ -76,4 +76,14 @@ class DataModel
 	{
 		unset( $this->_model_data[$key] );
 	}
+	
+	/**
+	 * Get the model as json string
+	 *
+	 * @return string
+	 */
+	public function json()
+	{
+		return json_encode( $this->_model_data );	
+	}
 }

@@ -1,6 +1,8 @@
 SourceQuery
 ===========
 
+[![Build Status](https://travis-ci.org/mario-deluna/SourceQuery.svg)](https://travis-ci.org/mario-deluna/SourceQuery)
+
 This is a fork of the original [SourceQuery by Yannickcr](https://github.com/yannickcr/SourceQuery).
 
 This little PHP library helps to query a [Source engine](http://en.wikipedia.org/wiki/Source_%28game_engine%29) server for games like:

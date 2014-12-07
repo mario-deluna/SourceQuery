@@ -121,4 +121,13 @@ class ClientTest extends \PHPUnit_Framework_TestCase
 		$this->assertInstanceOf( 'SourceQuery\\Server', $client->server() );
 		$this->assertEquals( 2, Connection::$numberOfQueries );
 	}
+	
+	/**
+	 * Tests client fetch server data
+	 */
+	public function testChallange()
+	{		
+		//$client = new Client( '69.162.101.109', 27015 );
+		//$client->players();
+	}
 }

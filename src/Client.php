@@ -286,11 +286,6 @@ class Client
 		return [ $data, $parameters ];
 	}
 
-
-	protected function getChallenge() {
-		$challenge = $this->query("\xFF\xFF\xFF\xFFU\xFF\xFF\xFF\xFF");
-		return substr($challenge, 5);
-	}
 	
 	// Hex to Signed Dec http://fr2.php.net/manual/en/function.hexdec.php#97172
 	private function hexdecs($hex){
@@ -298,19 +293,22 @@ class Client
 	    $max = pow(2, 4 * (strlen($hex) + (strlen($hex) % 2)));
 	    $_dec = $max - $dec;
 	    return $dec > $_dec ? -$_dec : $dec;
-	}	
-	public function getPlayers() {
-		$challenge = $this->getChallenge();
+	}
 	
-		$infos = $this->query("\xFF\xFF\xFF\xFFU" . $challenge);
+	/**
+	 *
+	 */
+	public function players() 
+	{
+		$challange = substr( $this->connection()->query( "\xFF\xFF\xFF\xFFU\xFF\xFF\xFF\xFF" ), 5 );
+		$infos = $this->connection()->query( "\xFF\xFF\xFF\xFFU".$challange );
+		var_dump( $infos ); die;
+		$infos = explode( '\\', chunk_split( substr( bin2hex( $infos ), 12 ), 2, '\\' ) );
 		
-		$infos = chunk_split(substr(bin2hex($infos), 12), 2, '\\');
+		$players = [];
 		
-		$infos = explode('\\', $infos);
-		
-		$players = array();
-		for ($i = 0; isset($infos[$i + 1]); $i = $j + 9) {
-			
+		for ( $i = 0; isset( $infos[$i + 1] ); $i = $j + 9 ) 
+		{
 			// Player name
 			$name = '';
 			for ($j = $i + 1; isset($infos[$j]) && $infos[$j] != '00'; $j++) $name .= chr(hexdec($infos[$j]));
@@ -334,4 +332,3 @@ class Client
 		return $players;
 	}
 }
-?>

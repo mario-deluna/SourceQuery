@@ -40,10 +40,10 @@ class Connection
 	 */
 	public function connect( Client $client )
 	{
-		$ip = $client->config->ip;
-		$port = $client->config->port;
+		$ip = $client->config()->ip;
+		$port = $client->config()->port;
 		
-		$this->connection = fsockopen( 'udp://' . $ip, $port, $errno, $errstr, $client->config->timeout );
+		$this->connection = fsockopen( 'udp://' . $ip, $port, $errno, $errstr, $client->config()->timeout );
 		
 		if ( !$this->connection )
 		{
@@ -51,7 +51,7 @@ class Connection
 		}
 		
 		// also set the timeout for next connection
-		stream_set_timeout( $this->connection, $client->config->timeout );
+		stream_set_timeout( $this->connection, $client->config()->timeout );
 	}
 	
 	/**

@@ -1,5 +1,5 @@
 {
-	"name": "mario-deluna/sourcequery",
+	"name": "clancats/sourcequery",
 	"type": "library",
 	"description": "A PHP library to query a Source game server (Counter Strike, Half Life, Team Fortress ect. ) ",
 	"version": "1.0.0",
@@ -14,7 +14,7 @@
 		},
 		{
 			"name": "Mario Döring",
-			"homepage": "https://clancats.ch",
+			"homepage": "http://clancats.ch",
 			"role": "Developer"
 		}
 	],

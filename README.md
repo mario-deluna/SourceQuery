@@ -124,3 +124,7 @@ $server->password;
  */
 $server->vac;
 ```
+
+## Notes:
+
+* For more informations, please read the [Server queries documentation](http://developer.valvesoftware.com/wiki/Server_queries)

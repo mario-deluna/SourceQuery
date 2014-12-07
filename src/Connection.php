@@ -84,7 +84,7 @@ class Connection
 			$fpstatus = socket_get_status( $this->connection );
 		} 
 		while( $fpstatus['unread_bytes'] );
-		
+		//file_put_contents( __DIR__.'/../tests/queries/fetchServerData', $result );
 		return $result;
 	}
 }

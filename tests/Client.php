@@ -11,10 +11,14 @@ class ClientTest extends \PHPUnit_Framework_TestCase
 	 */
 	public function testConstruct()
 	{
-		$client = new Client( '89.223.32.156', '27012' );
-		$client->server();
+		$client = new Client( '1.2.3.4', 27015, true, 'SourceQuery\\Test\\Connection' );
 		
-		var_dump( $client->server() );
+		$this->assertInstanceOf( 'SourceQuery\\Client', $client );
+		$this->assertInstanceOf( 'SourceQuery\\Connection', $client->connection() );
+		$this->assertInstanceOf( 'SourceQuery\\Configuration', $client->config() );
+		$this->assertInstanceOf( 'SourceQuery\\Server', $client->server() );
+		
+		var_dump( $client );
 		
 		
 		

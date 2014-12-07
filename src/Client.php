@@ -39,7 +39,7 @@ class Client
 	 * @param int				$port
 	 * @return void
 	 */
-	public function __construct( $ip, $port = null, $connect = true ) 
+	public function __construct( $ip, $port = null, $connect = true, $driver = null ) 
 	{
 		// assign the configuration
 		$this->config = new Configuration;
@@ -48,7 +48,7 @@ class Client
 		$this->setPort( $port );
 
 		// directly try to connect
-		$this->connect();
+		$this->connect( $driver );
 	}
 	
 	/**
@@ -114,18 +114,39 @@ class Client
 	}
 	
 	/**
+	 * Get the current config
+	 *
+	 * @return SoruceQuery\Configuration
+	 */
+	public function config()
+	{
+		return $this->config;
+	}
+	
+	/**
 	 * Create a connection to the source server and close the old connection
 	 *
+	 * @param string[SourceQuery\Client]			$driver		
 	 * @return self
 	 */
-	public function connect()
-	{
+	public function connect( $driver = null )
+	{		
 		if ( !is_null( $this->connection ) && $this->connection instanceof Connection )
 		{
 			$this->connection->disconnect();
 		}
 		
-		$this->connection = new Connection( $this );
+		if ( is_null( $driver ) )
+		{
+			$driver = 'SourceQuery\\Connection';
+		}
+		
+		$this->connection = new $driver( $this );
+		
+		if ( ! $this->connection instanceof Connection )
+		{
+			throw new Exception( 'Connection driver has to be subclass of SourceQuery\\Connection.' );
+		}
 		
 		return $this;
 	}

@@ -55,4 +55,25 @@ class ServerTest extends \PHPUnit_Framework_TestCase
 		$server->serverType = 'bla';
 		$this->assertEquals( 'Unknown Server Type', $server->serverTypeFull );
 	}
+	
+	/**
+	 * Tests server object data
+	 */
+	public function testServerEnvironmentFull()
+	{
+		$server = $this->createServer();
+		$this->assertEquals( 'Windows', $server->EnvironmentFull );
+		
+		$server->environment = 'l';
+		$this->assertEquals( 'Linux', $server->EnvironmentFull );
+		
+		$server->environment = 'o';
+		$this->assertEquals( 'Mac', $server->EnvironmentFull );
+		
+		$server->environment = 'm';
+		$this->assertEquals( 'Mac', $server->EnvironmentFull );
+		
+		$server->environment = 'bla';
+		$this->assertEquals( 'Unknown Server Environment', $server->EnvironmentFull );
+	}
 }

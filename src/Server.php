@@ -142,4 +142,35 @@ class Server extends DataModel
 		
 		return $serverType;
 	}
+	
+	/**
+	 * Get server environment as full string
+	 *
+	 * @param string 		$serverType
+	 * @return string
+	 */
+	protected function getModifierEnvironmentFull()
+	{
+		switch ( $this->environment ) 
+		{
+			case 'l':
+				$environemt = 'Linux';
+			break;
+			
+			case 'w':
+				$environemt = 'Windows';
+			break;
+		
+			case 'm':
+			case 'o':
+				$environemt = 'Mac';
+			break;
+			
+			default:
+				$environemt = 'Unknown Server Environment';
+			break;
+		}
+		
+		return $environemt;
+	}
 }

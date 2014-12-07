@@ -101,4 +101,45 @@ class Server extends DataModel
 	{
 		return (bool) $password;
 	}
+	
+	/**
+	 * Convert vac to bool 
+	 *
+	 * @param mixed 		$password
+	 * @return bool
+	 */
+	protected function setModifierVac( $vac )
+	{
+		return (bool) $vac;
+	}
+	
+	/**
+	 * Get server type as full string
+	 *
+	 * @param string 		$serverType
+	 * @return string
+	 */
+	protected function getModifierServerTypeFull()
+	{
+		switch ( $this->serverType ) 
+		{
+			case 'd':
+				$serverType = 'dedicated server';
+			break;
+			
+			case 'l':
+				$serverType = 'non-dedicated server';
+			break;
+		
+			case 'p':
+				$serverType = 'SourceTV relay (proxy)';
+			break;
+			
+			default:
+				$serverType = 'Unknown Server Type';
+			break;
+		}
+		
+		return $serverType;
+	}
 }

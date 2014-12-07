@@ -16,7 +16,7 @@ class Client
 	 *
 	 * @var SourceQuery\Configuration
 	 */
-	public $config = null;
+	protected $config = null;
 	
 	/**
 	 * The server object
@@ -86,7 +86,7 @@ class Client
 	/**
 	 * Get the server object or create it
 	 *
-	 * @return SourceServer
+	 * @return SourceQuery\Server
 	 */
 	public function server()
 	{
@@ -101,6 +101,17 @@ class Client
 		}
 		
 		return $this->server = $this->fetchServerObject();
+	}
+	
+	/**
+	 * Forces to refetch the server data
+	 *
+	 * @return SourceQuery\Server
+	 */
+	public function refetchServer()
+	{
+		$this->server = null;
+		return $this->server();
 	}
 	
 	/**
@@ -265,7 +276,7 @@ class Client
 		// get the other parameters
 		$infos = explode( ' ', chunk_split( str_replace('\\', '', $data['parameters'] ), 2, ' ' ) );
 		
-		list( $parameters['id2'], $parameters['id1'], $parameters['playerCount'], $parameters['maxPlayerCount'], $parameters['botsCount'], $parameters['serverType'], $parameters['environment'], $parameters['password']) = $infos;
+		list( $parameters['id2'], $parameters['id1'], $parameters['playerCount'], $parameters['maxPlayerCount'], $parameters['botsCount'], $parameters['serverType'], $parameters['environment'], $parameters['password'], $parameters['vac'] ) = $infos;
 		
 		$parameters['id'] = $parameters['id1'].$parameters['id2']; 
 		

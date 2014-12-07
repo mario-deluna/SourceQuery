@@ -5,6 +5,20 @@ namespace SourceQuery\Test;
 class Connection extends \SourceQuery\Connection
 {	
 	/**
+	 * Count the number of times a conncection has been etablished.
+	 *
+	 * @var int
+	 */
+	public static $numberOfConnections = 0;
+	
+	/**
+	 * Count the number of queries executed
+	 *
+	 * @var int
+	 */
+	public static $numberOfQueries = 0;
+	
+	/**
 	 * The current connection status
 	 *
 	 * @var bool
@@ -29,6 +43,7 @@ class Connection extends \SourceQuery\Connection
 	 */
 	public function connect( \SourceQuery\Client $client )
 	{
+		static::$numberOfConnections++;
 		$this->connectionStatus = true;
 	}
 
@@ -59,7 +74,9 @@ class Connection extends \SourceQuery\Connection
 			
 			break;
 		}
-
+		
+		static::$numberOfQueries++;
+		
 		return $responseString;
 	}
 }

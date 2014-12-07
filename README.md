@@ -14,6 +14,17 @@ This little PHP library helps to query a [Source engine](http://en.wikipedia.org
  * and many more..
 
 
+## Installation
+
+Simply add the mario-deluna/sourcequery to you composer requirements.
+
+```json
+"require": 
+{
+	"mario-deluna/sourcequery": "dev-master"
+}
+```
+
 
 How to use
 ----------

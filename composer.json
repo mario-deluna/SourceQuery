@@ -1,7 +1,7 @@
 {
 	"name": "mario-deluna/sourcequery",
 	"type": "library",
-	"description": "A simple PHP class to query a Source engine server",
+	"description": "A PHP library to query a Source game server (Counter Strike, Half Life, Team Fortress ect. ) ",
 	"version": "1.0.0",
 	"keywords": [ "source", "game", "server" ],
 	"homepage": "https://github.com/mario-deluna/SourceQuery",

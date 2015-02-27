@@ -302,7 +302,7 @@ class Client
 	{
 		$challange = substr( $this->connection()->query( "\xFF\xFF\xFF\xFFU\xFF\xFF\xFF\xFF" ), 5 );
 		$infos = $this->connection()->query( "\xFF\xFF\xFF\xFFU".$challange );
-		var_dump( $infos ); die;
+		
 		$infos = explode( '\\', chunk_split( substr( bin2hex( $infos ), 12 ), 2, '\\' ) );
 		
 		$players = [];
